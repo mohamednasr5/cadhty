@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>كاشي - إدارة المحافظ الإلكترونية</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- Login Page -->
+<div id="loginPage" class="login-page">
+  <div class="login-bg">
+    <div class="login-blob blob1"></div>
+    <div class="login-blob blob2"></div>
+    <div class="login-blob blob3"></div>
+  </div>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon"><i class="fas fa-wallet"></i></div>
+      <h1>كاشي لينك</h1>
+      <p>نظام إدارة المحافظ الإلكترونية</p>
+    </div>
+    <form id="loginForm" onsubmit="login(event)">
+      <div class="form-group">
+        <label><i class="fas fa-user"></i> اسم المستخدم</label>
+        <input type="text" id="loginUsername" placeholder="أدخل اسم المستخدم" required autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label><i class="fas fa-lock"></i> كلمة المرور</label>
+        <div class="password-field">
+          <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور" required autocomplete="current-password">
+          <button type="button" onclick="togglePassword()" class="eye-btn"><i class="fas fa-eye"></i></button>
+        </div>
+      </div>
+      <div id="loginError" class="login-error hidden"></div>
+      <button type="submit" class="btn-login" id="loginBtn">
+        <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+      </button>
+    </form>
+    <div class="login-footer">
+      <span>🔐 النظام محمي بتشفير كامل</span>
+    </div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="mainApp" class="app hidden">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark"><i class="fas fa-wallet"></i></div>
+      <div class="logo-text">
+        <strong>كاشي لينك</strong>
+        <small id="shopName">إدارة المحافظ</small>
+      </div>
+      <button class="sidebar-toggle-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">الرئيسية</div>
+      <a href="#" class="nav-item active" onclick="navigate('dashboard')">
+        <i class="fas fa-th-large"></i><span>لوحة التحكم</span>
+      </a>
+      <a href="#" class="nav-item" onclick="navigate('wallets')">
+        <i class="fas fa-wallet"></i><span>المحافظ</span>
+        <span class="nav-badge" id="walletBadge">0</span>
+      </a>
+      <a href="#" class="nav-item" onclick="navigate('new-transaction')">
+        <i class="fas fa-exchange-alt"></i><span>عملية جديدة</span>
+      </a>
+      <a href="#" class="nav-item" onclick="navigate('transactions')">
+        <i class="fas fa-list-alt"></i><span>سجل العمليات</span>
+      </a>
+
+      <div class="nav-section-label">الأدوات</div>
+      <a href="#" class="nav-item" onclick="navigate('android')">
+        <i class="fab fa-android"></i><span>ربط الهاتف</span>
+        <span class="nav-badge device-badge" id="deviceBadge">0</span>
+      </a>
+      <a href="#" class="nav-item" onclick="navigate('sms')">
+        <i class="fas fa-sms"></i><span>الرسائل</span>
+        <span class="nav-badge sms-badge hidden" id="smsBadge">0</span>
+      </a>
+      <a href="#" class="nav-item" onclick="navigate('customers')">
+        <i class="fas fa-users"></i><span>العملاء</span>
+      </a>
+      <a href="#" class="nav-item" onclick="navigate('reports')">
+        <i class="fas fa-chart-bar"></i><span>التقارير</span>
+      </a>
+
+      <div class="nav-section-label">الإدارة</div>
+      <a href="#" class="nav-item" onclick="navigate('settings')">
+        <i class="fas fa-cog"></i><span>الإعدادات</span>
+      </a>
+      <a href="#" class="nav-item" onclick="navigate('users')" id="usersNav">
+        <i class="fas fa-user-shield"></i><span>المستخدمون</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="user-avatar"><i class="fas fa-user-circle"></i></div>
+      <div class="user-info">
+        <strong id="sidebarUserName">-</strong>
+        <small id="sidebarUserRole">-</small>
+      </div>
+      <button onclick="logout()" class="logout-btn" title="تسجيل الخروج"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent">
+    
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-right">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <div class="breadcrumb" id="breadcrumb">لوحة التحكم</div>
+      </div>
+      <div class="topbar-left">
+        <div class="clock" id="clock"></div>
+        <div class="connection-status" id="wsStatus" title="حالة الاتصال">
+          <i class="fas fa-circle"></i>
+        </div>
+        <button class="notif-btn" onclick="navigate('sms')">
+          <i class="fas fa-bell"></i>
+          <span class="notif-count hidden" id="notifCount">0</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Pages -->
+    <div class="page-content" id="pageContent">
+
+      <!-- DASHBOARD PAGE -->
+      <section id="page-dashboard" class="page active">
+        <div class="page-header">
+          <h2>لوحة التحكم</h2>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="navigate('new-transaction')">
+              <i class="fas fa-plus"></i> عملية جديدة
+            </button>
+            <button class="btn btn-outline" onclick="loadDashboard()">
+              <i class="fas fa-sync-alt"></i> تحديث
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card primary">
+            <div class="stat-icon"><i class="fas fa-coins"></i></div>
+            <div class="stat-info">
+              <span class="stat-label">إجمالي الأرصدة</span>
+              <strong class="stat-value" id="totalBalance">-</strong>
+              <small id="walletCountLabel">0 محفظة</small>
+            </div>
+          </div>
+          <div class="stat-card success">
+            <div class="stat-icon"><i class="fas fa-arrow-down"></i></div>
+            <div class="stat-info">
+              <span class="stat-label">إيداع اليوم</span>
+              <strong class="stat-value" id="todayIn">-</strong>
+              <small id="todayInCount">0 عملية</small>
+            </div>
+          </div>
+          <div class="stat-card danger">
+            <div class="stat-icon"><i class="fas fa-arrow-up"></i></div>
+            <div class="stat-info">
+              <span class="stat-label">سحب اليوم</span>
+              <strong class="stat-value" id="todayOut">-</strong>
+              <small id="todayOutLabel">اليوم</small>
+            </div>
+          </div>
+          <div class="stat-card warning">
+            <div class="stat-icon"><i class="fas fa-percentage"></i></div>
+            <div class="stat-info">
+              <span class="stat-label">عمولة اليوم</span>
+              <strong class="stat-value" id="todayFees">-</strong>
+              <small id="todayFeesLabel">إجمالي</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Wallets Overview -->
+        <div class="section-card">
+          <div class="section-header">
+            <h3><i class="fas fa-wallet"></i> المحافظ</h3>
+            <button class="btn btn-sm btn-outline" onclick="navigate('wallets')">عرض الكل</button>
+          </div>
+          <div class="wallets-overview" id="walletsOverview">
+            <div class="loading-spinner">جاري التحميل...</div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="section-header">
+              <h3><i class="fas fa-chart-line"></i> حركة آخر 7 أيام</h3>
+            </div>
+            <canvas id="weekChart" height="220"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="section-header">
+              <h3><i class="fas fa-chart-pie"></i> توزيع المحافظ</h3>
+            </div>
+            <canvas id="providerChart" height="220"></canvas>
+          </div>
+        </div>
+
+        <!-- Recent Transactions + Alerts -->
+        <div class="bottom-row">
+          <div class="section-card flex-2">
+            <div class="section-header">
+              <h3><i class="fas fa-history"></i> آخر العمليات</h3>
+            </div>
+            <div id="recentTransactions">جاري التحميل...</div>
+          </div>
+          <div class="section-card flex-1">
+            <div class="section-header">
+              <h3><i class="fas fa-exclamation-triangle"></i> تنبيهات</h3>
+            </div>
+            <div id="alertsPanel">لا توجد تنبيهات</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- WALLETS PAGE -->
+      <section id="page-wallets" class="page">
+        <div class="page-header">
+          <h2>إدارة المحافظ</h2>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openWalletModal()">
+              <i class="fas fa-plus"></i> محفظة جديدة
+            </button>
+          </div>
+        </div>
+        <div class="provider-tabs" id="providerTabs">
+          <button class="provider-tab active" onclick="filterWallets('all')">الكل</button>
+          <button class="provider-tab vodafone" onclick="filterWallets('vodafone')"><i class="fas fa-circle"></i> فودافون</button>
+          <button class="provider-tab orange" onclick="filterWallets('orange')"><i class="fas fa-circle"></i> اورانج</button>
+          <button class="provider-tab etisalat" onclick="filterWallets('etisalat')"><i class="fas fa-circle"></i> اتصالات</button>
+          <button class="provider-tab we" onclick="filterWallets('we')"><i class="fas fa-circle"></i> وي</button>
+        </div>
+        <div class="wallets-grid" id="walletsGrid">جاري التحميل...</div>
+      </section>
+
+      <!-- NEW TRANSACTION PAGE -->
+      <section id="page-new-transaction" class="page">
+        <div class="page-header">
+          <h2>عملية جديدة</h2>
+        </div>
+        <div class="transaction-form-container">
+          <div class="transaction-type-selector" id="txTypeSelector">
+            <button class="tx-type-btn active" onclick="selectTxType('send')" data-type="send">
+              <i class="fas fa-paper-plane"></i>
+              <span>إرسال / تحويل</span>
+            </button>
+            <button class="tx-type-btn" onclick="selectTxType('receive')" data-type="receive">
+              <i class="fas fa-hand-holding-usd"></i>
+              <span>استلام</span>
+            </button>
+            <button class="tx-type-btn" onclick="selectTxType('withdraw')" data-type="withdraw">
+              <i class="fas fa-money-bill-wave"></i>
+              <span>سحب كاش</span>
+            </button>
+            <button class="tx-type-btn" onclick="selectTxType('deposit')" data-type="deposit">
+              <i class="fas fa-piggy-bank"></i>
+              <span>إيداع</span>
+            </button>
+          </div>
+
+          <div class="transaction-form" id="transactionForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label>المحفظة <span class="required">*</span></label>
+                <select id="txWallet" onchange="onWalletSelect()" required>
+                  <option value="">اختر المحفظة</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>المبلغ (جنيه) <span class="required">*</span></label>
+                <input type="number" id="txAmount" placeholder="0.00" min="1" step="0.01" oninput="calcFee()">
+              </div>
+            </div>
+
+            <div class="wallet-info-bar hidden" id="walletInfoBar">
+              <div class="info-item"><span>الرصيد:</span> <strong id="selectedBalance">-</strong></div>
+              <div class="info-item"><span>الحد اليومي:</span> <strong id="selectedDailyLimit">-</strong></div>
+              <div class="info-item"><span>المستخدم اليوم:</span> <strong id="selectedDailyUsed">-</strong></div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>اسم العميل</label>
+                <input type="text" id="txCustomerName" placeholder="اسم صاحب الطلب">
+              </div>
+              <div class="form-group">
+                <label>رقم العميل</label>
+                <input type="tel" id="txCustomerPhone" placeholder="01XXXXXXXXX">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>الرسوم (جنيه)</label>
+                <input type="number" id="txFee" placeholder="محسوبة تلقائياً" step="0.01">
+              </div>
+              <div class="form-group">
+                <label>رقم المرجع</label>
+                <input type="text" id="txReference" placeholder="رقم العملية (اختياري)">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>ملاحظات</label>
+              <textarea id="txNotes" rows="2" placeholder="ملاحظات إضافية..."></textarea>
+            </div>
+
+            <div class="fee-summary" id="feeSummary" style="display:none">
+              <div class="fee-row"><span>المبلغ:</span><strong id="feeAmount">-</strong></div>
+              <div class="fee-row"><span>الرسوم:</span><strong id="feeValue">-</strong></div>
+              <div class="fee-row total"><span>الإجمالي:</span><strong id="feeTotal">-</strong></div>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn-success btn-lg" onclick="submitTransaction()">
+                <i class="fas fa-check-circle"></i> تنفيذ العملية
+              </button>
+              <button class="btn btn-outline btn-lg" onclick="clearTxForm()">
+                <i class="fas fa-times"></i> مسح
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRANSACTIONS PAGE -->
+      <section id="page-transactions" class="page">
+        <div class="page-header">
+          <h2>سجل العمليات</h2>
+          <div class="page-actions">
+            <button class="btn btn-outline" onclick="exportTransactions()">
+              <i class="fas fa-file-excel"></i> تصدير Excel
+            </button>
+          </div>
+        </div>
+        <div class="filters-bar">
+          <input type="text" id="txSearch" placeholder="بحث بالاسم أو الرقم..." oninput="filterTransactions()">
+          <select id="txFilterWallet" onchange="filterTransactions()">
+            <option value="">كل المحافظ</option>
+          </select>
+          <select id="txFilterType" onchange="filterTransactions()">
+            <option value="">كل الأنواع</option>
+            <option value="send">إرسال</option>
+            <option value="receive">استلام</option>
+            <option value="withdraw">سحب</option>
+            <option value="deposit">إيداع</option>
+          </select>
+          <input type="date" id="txFilterFrom" onchange="filterTransactions()">
+          <input type="date" id="txFilterTo" onchange="filterTransactions()">
+          <button class="btn btn-sm btn-outline" onclick="clearFilters()">مسح الفلاتر</button>
+        </div>
+        <div class="table-container">
+          <table class="data-table" id="transactionsTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>التاريخ</th>
+                <th>المحفظة</th>
+                <th>النوع</th>
+                <th>المبلغ</th>
+                <th>الرسوم</th>
+                <th>العميل</th>
+                <th>المرجع</th>
+                <th>الحالة</th>
+                <th>إجراء</th>
+              </tr>
+            </thead>
+            <tbody id="transactionsBody">
+              <tr><td colspan="10" class="text-center">جاري التحميل...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="txPagination"></div>
+      </section>
+
+      <!-- ANDROID PAGE -->
+      <section id="page-android" class="page">
+        <div class="page-header">
+          <h2>ربط الهاتف الأندرويد</h2>
+          <button class="btn btn-primary" onclick="scanDevices()">
+            <i class="fas fa-search"></i> فحص الأجهزة
+          </button>
+        </div>
+
+        <div class="adb-guide">
+          <div class="guide-card">
+            <h4><i class="fas fa-info-circle"></i> خطوات الربط</h4>
+            <div class="guide-steps">
+              <div class="guide-step">
+                <span class="step-num">1</span>
+                <p>افتح إعدادات الهاتف → حول الهاتف → اضغط على "رقم الإصدار" 7 مرات</p>
+              </div>
+              <div class="guide-step">
+                <span class="step-num">2</span>
+                <p>ادخل على خيارات المطور → فعّل "تصحيح أخطاء USB"</p>
+              </div>
+              <div class="guide-step">
+                <span class="step-num">3</span>
+                <p>وصّل الهاتف بالكمبيوتر عبر كابل USB</p>
+              </div>
+              <div class="guide-step">
+                <span class="step-num">4</span>
+                <p>اقبل رسالة "السماح بتصحيح الأخطاء" على الهاتف</p>
+              </div>
+              <div class="guide-step">
+                <span class="step-num">5</span>
+                <p>اضغط "فحص الأجهزة" لرؤية الهاتف في القائمة</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="devices-grid" id="devicesGrid">
+          <div class="loading-spinner">اضغط "فحص الأجهزة" للبدء</div>
+        </div>
+
+        <!-- USSD Panel -->
+        <div class="section-card" id="ussdPanel" style="display:none">
+          <div class="section-header">
+            <h3><i class="fas fa-phone-alt"></i> تنفيذ أكواد USSD</h3>
+          </div>
+          <div class="ussd-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>الجهاز</label>
+                <select id="ussdDevice"></select>
+              </div>
+              <div class="form-group">
+                <label>الكود</label>
+                <input type="text" id="ussdCode" placeholder="مثال: *9*13#">
+              </div>
+              <button class="btn btn-primary" onclick="sendUSSD()">
+                <i class="fas fa-paper-plane"></i> إرسال
+              </button>
+            </div>
+            <div class="ussd-presets" id="ussdPresets"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SMS PAGE -->
+      <section id="page-sms" class="page">
+        <div class="page-header">
+          <h2>رسائل SMS</h2>
+          <button class="btn btn-primary" onclick="fetchSMS()">
+            <i class="fas fa-download"></i> جلب الرسائل
+          </button>
+        </div>
+        <div class="sms-list" id="smsList">
+          <div class="loading-spinner">جاري التحميل...</div>
+        </div>
+      </section>
+
+      <!-- CUSTOMERS PAGE -->
+      <section id="page-customers" class="page">
+        <div class="page-header">
+          <h2>إدارة العملاء</h2>
+          <button class="btn btn-primary" onclick="openCustomerModal()">
+            <i class="fas fa-plus"></i> عميل جديد
+          </button>
+        </div>
+        <div class="filters-bar">
+          <input type="text" id="customerSearch" placeholder="بحث بالاسم أو الرقم..." oninput="loadCustomers()">
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr><th>#</th><th>الاسم</th><th>الهاتف</th><th>رقم قومي</th><th>عدد العمليات</th><th>إجمالي المبالغ</th><th>آخر عملية</th><th>إجراء</th></tr>
+            </thead>
+            <tbody id="customersBody">
+              <tr><td colspan="8" class="text-center">جاري التحميل...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- REPORTS PAGE -->
+      <section id="page-reports" class="page">
+        <div class="page-header">
+          <h2>التقارير والإحصائيات</h2>
+        </div>
+        <div class="report-tabs">
+          <button class="report-tab active" onclick="switchReport('daily')">تقرير يومي</button>
+          <button class="report-tab" onclick="switchReport('monthly')">تقرير شهري</button>
+          <button class="report-tab" onclick="switchReport('wallets')">إحصائيات المحافظ</button>
+        </div>
+        <div id="reportContent">
+          <div class="daily-report">
+            <div class="report-date-picker">
+              <label>التاريخ:</label>
+              <input type="date" id="reportDate" value="" onchange="loadDailyReport()">
+              <button class="btn btn-outline btn-sm" onclick="exportReport()">
+                <i class="fas fa-file-excel"></i> تصدير
+              </button>
+            </div>
+            <div id="dailyReportContent">اختر التاريخ لعرض التقرير</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETTINGS PAGE -->
+      <section id="page-settings" class="page">
+        <div class="page-header"><h2>الإعدادات</h2></div>
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h4><i class="fas fa-store"></i> إعدادات المحل</h4>
+            <div class="form-group">
+              <label>اسم المحل</label>
+              <input type="text" id="settingShopName">
+            </div>
+            <div class="form-group">
+              <label>هاتف المحل</label>
+              <input type="text" id="settingShopPhone">
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()">حفظ الإعدادات</button>
+          </div>
+          <div class="settings-card">
+            <h4><i class="fas fa-bell"></i> تنبيهات الرصيد</h4>
+            <div class="form-group">
+              <label>تنبيه عند رصيد أقل من (جنيه)</label>
+              <input type="number" id="settingLowBalance">
+            </div>
+            <div class="form-group">
+              <label>تحليل الرسائل تلقائياً</label>
+              <select id="settingAutoSMS">
+                <option value="1">مفعّل</option>
+                <option value="0">معطّل</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()">حفظ</button>
+          </div>
+          <div class="settings-card">
+            <h4><i class="fas fa-lock"></i> كلمة المرور</h4>
+            <div class="form-group">
+              <label>كلمة المرور الحالية</label>
+              <input type="password" id="oldPassword">
+            </div>
+            <div class="form-group">
+              <label>كلمة المرور الجديدة</label>
+              <input type="password" id="newPassword">
+            </div>
+            <div class="form-group">
+              <label>تأكيد كلمة المرور</label>
+              <input type="password" id="confirmPassword">
+            </div>
+            <button class="btn btn-warning" onclick="changePassword()">تغيير كلمة المرور</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- USERS PAGE -->
+      <section id="page-users" class="page">
+        <div class="page-header">
+          <h2>إدارة المستخدمين</h2>
+          <button class="btn btn-primary" onclick="openUserModal()"><i class="fas fa-plus"></i> مستخدم جديد</button>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead><tr><th>#</th><th>الاسم</th><th>المستخدم</th><th>الدور</th><th>الهاتف</th><th>الحالة</th><th>آخر دخول</th><th>إجراء</th></tr></thead>
+            <tbody id="usersBody"><tr><td colspan="8" class="text-center">جاري التحميل...</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+    </div><!-- end pageContent -->
+  </main>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay hidden" id="modalOverlay" onclick="closeModal(event)">
+  
+  <!-- Wallet Modal -->
+  <div class="modal" id="walletModal">
+    <div class="modal-header">
+      <h3 id="walletModalTitle">محفظة جديدة</h3>
+      <button onclick="closeAllModals()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="walletId">
+      <div class="form-row">
+        <div class="form-group">
+          <label>اسم المحفظة <span class="required">*</span></label>
+          <input type="text" id="walletName" placeholder="مثال: فودافون كاش الرئيسية">
+        </div>
+        <div class="form-group">
+          <label>المزود <span class="required">*</span></label>
+          <select id="walletProvider">
+            <option value="vodafone">🔴 فودافون كاش</option>
+            <option value="orange">🟠 اورانج كاش</option>
+            <option value="etisalat">🟢 اتصالات كاش</option>
+            <option value="we">🔵 وي باي</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>رقم الهاتف <span class="required">*</span></label>
+          <input type="text" id="walletPhone" placeholder="01XXXXXXXXX">
+        </div>
+        <div class="form-group">
+          <label>اسم صاحب المحفظة <span class="required">*</span></label>
+          <input type="text" id="walletOwner" placeholder="الاسم الكامل">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>الرقم القومي</label>
+          <input type="text" id="walletNID" placeholder="14 رقم">
+        </div>
+        <div class="form-group">
+          <label>الرصيد الحالي (جنيه)</label>
+          <input type="number" id="walletBalance" placeholder="0" min="0" step="0.01">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>الحد اليومي (جنيه)</label>
+          <input type="number" id="walletDailyLimit" placeholder="60000">
+        </div>
+        <div class="form-group">
+          <label>الحد الشهري (جنيه)</label>
+          <input type="number" id="walletMonthlyLimit" placeholder="200000">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>لون المحفظة</label>
+          <input type="color" id="walletColor" value="#4CAF50">
+        </div>
+        <div class="form-group">
+          <label>تلميح الرقم السري</label>
+          <input type="text" id="walletPinHint" placeholder="مثال: آخر 4 أرقام من الهاتف">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>ملاحظات</label>
+        <textarea id="walletNotes" rows="2" placeholder="ملاحظات..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="saveWallet()"><i class="fas fa-save"></i> حفظ</button>
+      <button class="btn btn-outline" onclick="closeAllModals()">إلغاء</button>
+    </div>
+  </div>
+
+  <!-- Customer Modal -->
+  <div class="modal hidden" id="customerModal">
+    <div class="modal-header">
+      <h3>عميل جديد</h3>
+      <button onclick="closeAllModals()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="customerId">
+      <div class="form-group"><label>الاسم *</label><input type="text" id="customerName"></div>
+      <div class="form-group"><label>الهاتف</label><input type="text" id="customerPhone"></div>
+      <div class="form-group"><label>الرقم القومي</label><input type="text" id="customerNID"></div>
+      <div class="form-group"><label>ملاحظات</label><textarea id="customerNotes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="saveCustomer()">حفظ</button>
+      <button class="btn btn-outline" onclick="closeAllModals()">إلغاء</button>
+    </div>
+  </div>
+
+  <!-- User Modal -->
+  <div class="modal hidden" id="userModal">
+    <div class="modal-header">
+      <h3>مستخدم جديد</h3>
+      <button onclick="closeAllModals()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>الاسم الكامل *</label><input type="text" id="userFullName"></div>
+        <div class="form-group"><label>اسم المستخدم *</label><input type="text" id="userUsername"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>كلمة المرور *</label><input type="password" id="userPassword"></div>
+        <div class="form-group"><label>الدور</label>
+          <select id="userRole">
+            <option value="cashier">كاشير</option>
+            <option value="admin">مدير</option>
+            <option value="viewer">مشاهد</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>الهاتف</label><input type="text" id="userPhone"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="saveUser()">إنشاء</button>
+      <button class="btn btn-outline" onclick="closeAllModals()">إلغاء</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast Notification -->
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- Print Receipt -->
+<div id="receiptArea" style="display:none"></div>
+
+<script src="/js/app.js"></script>
+</body>
+</html>
